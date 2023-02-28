@@ -1,0 +1,82 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: api-golang-rollout
+  namespace: api-golang
+  labels:
+    app: api-golang
+spec:
+  replicas: 3
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: api-golang
+  template:
+    metadata:
+      labels:
+        app: api-golang
+    spec:
+      containers:
+      - name: api-golang
+        image: enconti/api-test
+        imagePullPolicy: Always
+        args:
+        - srv-v1
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        resources:
+            requests:
+                memory: "64Mi"
+                cpu: "250m"
+            limits:
+                memory: "128Mi"
+                cpu: "1"
+  strategy:
+    blueGreen:
+      autoPromotionEnabled: false
+      activeService: api-golang-service
+      previewService: api-golang-service-preview
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-golang-service-preview
+  namespace: api-golang
+spec:
+  ports:
+    - port: 80
+      targetPort: 8000
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: api-golang
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-golang-ingress-preview
+  namespace: api-golang
+  annotations:
+    alb.ingress.kubernetes.io/group.name: api-golang-preview
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+    #alb.ingress.kubernetes.io/tags: Environment=preview,App=api-golangPreview
+spec:
+  ingressClassName: alb
+  rules:
+  - host: #api-golangrev.{{ .Values.spec.ingress.host }}
+    http:
+      paths:
+      - path: /version
+        pathType: Prefix
+        backend:
+          service:
+            name: api-golang-service-preview
+            port:
+              number: 80

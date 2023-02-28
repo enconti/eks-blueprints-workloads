@@ -82,7 +82,7 @@ envs
 │   ├── templates
 │   │   ├── team-burnham.yaml
 │   │   ├── team-carmen.yaml
-│   │   ├── team-riker.yaml
+│   │   ├── team-emercon.yaml
 │   └── values.yaml
 ├── prod
 └── test
@@ -108,7 +108,7 @@ teams
 │   └── test
 │       ├── deployment.yaml
 │       └── service.yaml
-├── team-riker
+├── team-emercon
 
 ```
 

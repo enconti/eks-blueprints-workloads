@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-golang-deployment
+  namespace: api-golang
+spec:
+  selector:
+    matchLabels:
+      app: api-golang
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: api-golang
+    spec:
+      containers:
+      - name: api-golang
+        image: enconti/api-test
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
